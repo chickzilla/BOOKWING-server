@@ -10,6 +10,9 @@ const db = require("./database/db");
 const authRouter = require("./routes/auth");
 app.use("/auth", authRouter);
 
+const eventRouter = require("./routes/event");
+app.use("/event", eventRouter);
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
