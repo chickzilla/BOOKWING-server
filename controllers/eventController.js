@@ -7,7 +7,11 @@ const getAllEvents = async (req, res) => {
     return res.status(404).json({ message: "No event found" });
   }
 
-  res.send(result.docs.map((doc) => doc.data()));
+  const events = result.docs.map((event) => {
+    const eventId = event.id;
+    return { id: eventId, ...event.data() };
+  });
+  res.json(events);
 };
 
 const getEventById = async (req, res) => {
