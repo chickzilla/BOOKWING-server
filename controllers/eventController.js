@@ -84,4 +84,52 @@ const deleteEvent = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
-module.exports = { getAllEvents, getEventById, createEvent, deleteEvent };
+
+const updateEvent = async (req, res) => {
+  if (!req?.query?.id) {
+    return res.status(400).json({ message: "Please provide an id" });
+  }
+  const { id } = req.query;
+
+  const { name, longitude, latitude, type, picture, province, date } = req.body;
+  if (
+    !name ||
+    !longitude ||
+    !latitude ||
+    !type ||
+    !picture ||
+    !province ||
+    !date
+  ) {
+    return res.status(400).json({ message: "Please provide all field" });
+  }
+
+  const events = await db.collection("event").get();
+  const foundEvent = events.docs.find((event) => event.data().name === name);
+
+  if (!foundEvent) {
+    return res.status(401).json({ message: "This Event not exist in system" });
+  }
+
+  try {
+    await db.collection("event").doc(id).update({
+      name,
+      longitude,
+      latitude,
+      type,
+      picture,
+      province,
+      date,
+    });
+    return res.status(200).json({ message: "Event updated" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+module.exports = {
+  getAllEvents,
+  getEventById,
+  createEvent,
+  deleteEvent,
+  updateEvent,
+};
