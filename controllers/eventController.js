@@ -65,4 +65,23 @@ const createEvent = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
-module.exports = { getAllEvents, getEventById, createEvent };
+
+const deleteEvent = async (req, res) => {
+  if (!req?.query?.id) {
+    return res.status(400).json({ message: "Please provide an id" });
+  }
+
+  const { id } = req.query;
+  const result = await db.collection("event").doc(id).get();
+  if (!result.exists) {
+    return res.status(404).json({ message: "Event not found" });
+  }
+
+  try {
+    await db.collection("event").doc(id).delete();
+    return res.status(200).json({ message: "Event deleted" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+module.exports = { getAllEvents, getEventById, createEvent, deleteEvent };
