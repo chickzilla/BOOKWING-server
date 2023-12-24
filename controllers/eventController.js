@@ -78,6 +78,31 @@ const getEventByType = async (req, res) => {
   res.json(result);
 };
 
+const getEventByProvince = async (req, res) => {
+  if (!req?.query?.province) {
+    return res.status(400).json({ message: "Please provide an province" });
+  }
+
+  const { province } = req.query;
+
+  const events = await db.collection("event").get();
+  if (events.empty) {
+    return res.status(404).json({ message: "No event found" });
+  }
+
+  const result = events.docs
+    .map((event) => {
+      if (event.data().province !== province) {
+        return null;
+      }
+      const eventId = event.id;
+      return { id: eventId, ...event.data() };
+    })
+    .filter((event) => event !== null);
+
+  res.json(result);
+};
+
 // ---------------------------------------------
 const createEvent = async (req, res) => {
   const { name, longitude, latitude, type, picture, province, date } = req.body;
@@ -183,4 +208,5 @@ module.exports = {
   createEvent,
   deleteEvent,
   updateEvent,
+  getEventByProvince,
 };
