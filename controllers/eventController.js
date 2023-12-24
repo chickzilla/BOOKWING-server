@@ -103,6 +103,21 @@ const getEventByProvince = async (req, res) => {
   res.json(result);
 };
 
+const getAllLocation = async (req, res) => {
+  const result = await db.collection("event").get();
+  if (result.empty) {
+    return res.status(404).json({ message: "No event found" });
+  }
+
+  const events = result.docs.map((event) => {
+    const eventId = event.id;
+    const latitude = event.data().latitude;
+    const longitude = event.data().longitude;
+    return { id: eventId, latitude: latitude, longitude: longitude };
+  });
+  res.json(events);
+};
+
 // ---------------------------------------------
 const createEvent = async (req, res) => {
   const { name, longitude, latitude, type, picture, province, date } = req.body;
@@ -209,4 +224,5 @@ module.exports = {
   deleteEvent,
   updateEvent,
   getEventByProvince,
+  getAllLocation,
 };
