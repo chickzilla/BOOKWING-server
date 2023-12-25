@@ -67,9 +67,12 @@ const getEventByType = async (req, res) => {
 
   const result = events.docs
     .map((event) => {
-      if (event.data().type !== type) {
+      if (
+        event.data().type.find((eventType) => eventType === type) === undefined
+      ) {
         return null;
       }
+
       const eventId = event.id;
       return { id: eventId, ...event.data() };
     })
