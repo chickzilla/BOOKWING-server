@@ -10,6 +10,7 @@ app.listen(PORT, () => {
 });
 
 const db = require("./database/db");
+const storage = require("./database/db");
 
 //router
 const authRouter = require("./routes/auth");
