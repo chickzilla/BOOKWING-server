@@ -123,7 +123,18 @@ const getAllLocation = async (req, res) => {
 
 // ---------------------------------------------
 const createEvent = async (req, res) => {
-  const { name, longitude, latitude, type, picture, province, date } = req.body;
+  const {
+    name,
+    longitude,
+    latitude,
+    type,
+    picture,
+    province,
+    date,
+    time,
+    package,
+    description,
+  } = req.body;
   if (
     !name ||
     !longitude ||
@@ -131,7 +142,10 @@ const createEvent = async (req, res) => {
     !type ||
     !picture ||
     !province ||
-    !date
+    !date ||
+    !time ||
+    !package ||
+    !description
   ) {
     return res.status(400).json({ message: "Please provide all field" });
   }
@@ -151,6 +165,9 @@ const createEvent = async (req, res) => {
       picture,
       province,
       date,
+      time,
+      package,
+      description,
     });
     res.status(201).json({ success: `New event ${name} created!` });
   } catch (error) {
