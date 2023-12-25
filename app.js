@@ -9,8 +9,8 @@ app.listen(PORT, () => {
   console.log(`Example app listening at http://localhost:${PORT}`);
 });
 
-const db = require("./database/db");
-const storage = require("./database/db");
+const { db } = require("./database/db");
+const { storage } = require("./database/db");
 
 //router
 const authRouter = require("./routes/auth");

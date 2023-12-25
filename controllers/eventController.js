@@ -1,4 +1,5 @@
-const db = require("../database/db");
+const { db, bucket, storage } = require("../database/db");
+const { ref, uploadBytes } = require("firebase/storage");
 
 // GET EVENT -----------------------------------
 const getAllEvents = async (req, res) => {
@@ -122,6 +123,45 @@ const getAllLocation = async (req, res) => {
 };
 
 // ---------------------------------------------
+
+const upLoadFile = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send("No file uploaded.");
+  }
+
+  const file = req.file;
+  const filename = file.originalname;
+  const fileBuffer = file.buffer;
+
+  const fileUpload = bucket.file(filename);
+
+  // destination to storage
+  const stream = fileUpload.createWriteStream({
+    metadata: {
+      contentType: file.mimetype, // ex pdf
+    },
+  });
+  try {
+    stream.on("error", (err) => {
+      return res.status(500).send("File upload error: " + err);
+    });
+
+    stream.on("finish", async () => {
+      const url = await bucket.file(filename).getSignedUrl({
+        action: "read",
+        expires: "03-09-2491",
+      });
+      return res
+        .status(200)
+        .send({ message: "File uploaded successfully.", url: url[0] });
+    });
+
+    stream.end(fileBuffer);
+  } catch (error) {
+    return res.status(500).send("File upload error: " + error);
+  }
+};
+
 const createEvent = async (req, res) => {
   const {
     name,
@@ -245,4 +285,5 @@ module.exports = {
   updateEvent,
   getEventByProvince,
   getAllLocation,
+  upLoadFile,
 };

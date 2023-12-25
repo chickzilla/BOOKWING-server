@@ -4,6 +4,7 @@ const { getStorage } = require("firebase-admin/storage");
 const admin = require("firebase-admin");
 
 const serviceAccount = require("./serviceAccountKey.json");
+const bucketName = "book-wing.appspot.com";
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -11,6 +12,7 @@ admin.initializeApp({
 });
 
 const db = getFirestore();
-const bucket = getStorage().bucket();
+const storage = getStorage();
+const bucket = getStorage().bucket(bucketName);
 
-(module.exports = db), bucket;
+module.exports = { db, bucket, storage };
