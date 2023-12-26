@@ -1,4 +1,4 @@
-const { bucket } = require("./database/db");
+/*const { bucket } = require("./database/db");
 // List the files in the bucket
 bucket
   .getFiles()
@@ -15,4 +15,4 @@ bucket
   })
   .catch((error) => {
     console.error("Error listing files in the bucket:", error);
-  });
+  });*/
