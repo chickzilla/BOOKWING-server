@@ -1,18 +1,23 @@
-/*const { bucket } = require("./database/db");
-// List the files in the bucket
-bucket
-  .getFiles()
-  .then((results) => {
-    const files = results[0];
-    if (files.length === 0) {
-      console.log("The bucket is empty.");
-    } else {
-      console.log("Files in the bucket:");
-      files.forEach((file) => {
-        console.log(file.name);
-      });
-    }
-  })
-  .catch((error) => {
-    console.error("Error listing files in the bucket:", error);
-  });*/
+const array = Array.from({ length: 8 })
+  .map((_, index) => index)
+  .filter((_, index) => index % 2 === 0)
+  .map((id) => ({ id }));
+
+console.log(array);
+
+const CoinStatus = () => {
+  const [coin, isLoading, isError] = useCoin();
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  if (isError) {
+    return <div>Error</div>;
+  }
+
+  return (
+    <statusContainer>
+      <CoinText>{coin}</CoinText>
+      {coin > 0 && <CoinImage />}
+    </statusContainer>
+  );
+};

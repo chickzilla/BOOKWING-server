@@ -170,6 +170,7 @@ const createEvent = async (req, res) => {
     type,
     picture,
     province,
+    location,
     date,
     time,
     package,
@@ -182,6 +183,7 @@ const createEvent = async (req, res) => {
     !type ||
     !picture ||
     !province ||
+    !location ||
     !date ||
     !time ||
     !package ||
@@ -197,19 +199,24 @@ const createEvent = async (req, res) => {
   }
 
   try {
-    const result = await db.collection("event").add({
-      name,
-      longitude,
-      latitude,
-      type,
-      picture,
-      province,
-      date,
-      time,
-      package,
-      description,
-    });
-    res.status(201).json({ success: `New event ${name} created!` });
+    const result = await db
+      .collection("event")
+      .add({
+        name,
+        longitude,
+        latitude,
+        type,
+        picture,
+        province,
+        location,
+        date,
+        time,
+        package,
+        description,
+      })
+      .then((docRef) => {
+        res.status(201).json({ message: docRef.id });
+      });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
