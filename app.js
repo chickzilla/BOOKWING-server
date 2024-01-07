@@ -4,6 +4,17 @@ const app = express();
 app.use(express.json());
 const PORT = process.env.PORT || 8000;
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
+
+app.use(cookieParser());
+
+/*app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);*/
+
 app.use(cors());
 app.listen(PORT, () => {
   console.log(`Example app listening at http://localhost:${PORT}`);

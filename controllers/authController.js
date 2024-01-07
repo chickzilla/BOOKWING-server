@@ -76,4 +76,28 @@ const RegisterHandler = async (req, res) => {
   }
 };
 
-module.exports = { LoginHandler, RegisterHandler };
+const UserProfile = async (req, res) => {
+  if (!req.header("Authorization")) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const token = req.header("Authorization").replace("Bearer ", "");
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const users = await db.collection("user").get();
+    const foundUser = users.docs.find(
+      (user) => user.data().username === decoded.username
+    );
+    if (!foundUser) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    res.status(200).json({ user: { ...foundUser.data(), password: "" } });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { LoginHandler, RegisterHandler, UserProfile };
