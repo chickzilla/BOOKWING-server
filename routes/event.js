@@ -16,6 +16,8 @@ const {
   getEventByOrganizer,
 } = require("../controllers/eventController");
 
+const verifyAuth = require("../middleware/verifyAuth");
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 rounter.get("/", getAllEvents);
@@ -26,8 +28,8 @@ rounter.get("/province", getEventByProvince);
 rounter.get("/location", getAllLocation);
 rounter.get("/organizer", getEventByOrganizer);
 rounter.post("/upload", upload.single("file"), upLoadFile);
-rounter.post("/create", createEvent);
-rounter.delete("/delete", deleteEvent);
-rounter.put("/update", updateEvent);
+rounter.post("/create", verifyAuth, createEvent);
+rounter.delete("/delete", verifyAuth, deleteEvent);
+rounter.put("/update", verifyAuth, updateEvent);
 
 module.exports = rounter;
