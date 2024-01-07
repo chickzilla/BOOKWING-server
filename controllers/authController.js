@@ -1,19 +1,21 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const {db} = require("../database/db");
+const { db } = require("../database/db");
 
 const LoginHandler = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { username, password } = req.body;
+  if (!username || !password) {
     return res
       .status(400)
-      .json({ message: "Please provide an email and password" });
+      .json({ message: "Please provide an username and password" });
   }
   const users = await db.collection("user").get();
-  const foundUser = users.docs.find((user) => user.data().email === email);
+  const foundUser = users.docs.find(
+    (user) => user.data().username === username
+  );
 
   if (!foundUser) {
-    return res.status(401).json({ message: "Email not exist in system" });
+    return res.status(401).json({ message: "Username not exist in system" });
   }
 
   const match = await bcrypt.compare(password, foundUser.data().password);
@@ -24,7 +26,7 @@ const LoginHandler = async (req, res) => {
   if (match) {
     const jwtToken = jwt.sign(
       {
-        email: foundUser.data().email,
+        username: foundUser.data().username,
       },
       process.env.ACCESS_TOKEN_SECRET,
       {
@@ -44,28 +46,31 @@ const LoginHandler = async (req, res) => {
 // REGISTER ----------------------------------
 
 const RegisterHandler = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res
-      .status(400)
-      .json({ message: "Please provide an email and password" });
+  const { firstname, lastname, email, username, password } = req.body;
+  if (!email || !password || !firstname || !lastname || !username) {
+    return res.status(400).json({ message: "Please provide all field" });
   }
 
   const users = await db.collection("user").get();
-  const foundUser = users.docs.find((user) => user.data().email === email);
+  const foundUser = users.docs.find(
+    (user) => user.data().username === username
+  );
 
   if (foundUser) {
-    return res.status(401).json({ message: "Email already exist" });
+    return res.status(401).json({ message: "Username already exist" });
   }
 
   try {
     const salt = 10;
     const hashPassword = await bcrypt.hash(password, salt);
     await db.collection("user").add({
+      firstname,
+      lastname,
       email,
+      username,
       password: hashPassword,
     });
-    res.status(201).json({ success: `New user ${email} created!` });
+    res.status(201).json({ success: `New user ${username} created!` });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
