@@ -122,6 +122,29 @@ const getAllLocation = async (req, res) => {
   res.json(events);
 };
 
+const getEventByOrganizer = async (req, res) => {
+  if (!req?.query?.organizer) {
+    return res.status(400).json({ message: "Please provide an organizer" });
+  }
+  const { organizer } = req.query;
+  const events = await db.collection("event").get();
+  if (events.empty) {
+    return res.status(404).json({ message: "No event found" });
+  }
+
+  const result = events.docs
+    .map((event) => {
+      if (event.data().organizer !== organizer) {
+        return null;
+      }
+      const eventId = event.id;
+      return { id: eventId, ...event.data() };
+    })
+    .filter((event) => event !== null);
+
+  return res.json(result);
+};
+
 // ---------------------------------------------
 
 const upLoadFile = async (req, res) => {
@@ -319,4 +342,5 @@ module.exports = {
   getEventByProvince,
   getAllLocation,
   upLoadFile,
+  getEventByOrganizer,
 };

@@ -13,6 +13,7 @@ const {
   getEventByProvince,
   getAllLocation,
   upLoadFile,
+  getEventByOrganizer,
 } = require("../controllers/eventController");
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -23,6 +24,7 @@ rounter.get("/type", getEventByType);
 rounter.get("/name", getAllNameEvent);
 rounter.get("/province", getEventByProvince);
 rounter.get("/location", getAllLocation);
+rounter.get("/organizer", getEventByOrganizer);
 rounter.post("/upload", upload.single("file"), upLoadFile);
 rounter.post("/create", createEvent);
 rounter.delete("/delete", deleteEvent);
