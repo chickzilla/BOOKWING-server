@@ -175,6 +175,7 @@ const createEvent = async (req, res) => {
     time,
     package,
     description,
+    organizer,
   } = req.body;
   if (
     !name ||
@@ -187,7 +188,8 @@ const createEvent = async (req, res) => {
     !date ||
     !time ||
     !package ||
-    !description
+    !description ||
+    !organizer
   ) {
     return res.status(400).json({ message: "Please provide all field" });
   }
@@ -213,6 +215,7 @@ const createEvent = async (req, res) => {
         time,
         package,
         description,
+        organizer,
       })
       .then((docRef) => {
         res.status(201).json({ message: docRef.id });
@@ -247,7 +250,20 @@ const updateEvent = async (req, res) => {
   }
   const { id } = req.query;
 
-  const { name, longitude, latitude, type, picture, province, date } = req.body;
+  const {
+    name,
+    longitude,
+    latitude,
+    type,
+    picture,
+    province,
+    location,
+    date,
+    time,
+    package,
+    description,
+    organizer,
+  } = req.body;
   if (
     !name ||
     !longitude ||
@@ -255,7 +271,12 @@ const updateEvent = async (req, res) => {
     !type ||
     !picture ||
     !province ||
-    !date
+    !location ||
+    !date ||
+    !time ||
+    !package ||
+    !description ||
+    !organizer
   ) {
     return res.status(400).json({ message: "Please provide all field" });
   }
@@ -275,7 +296,12 @@ const updateEvent = async (req, res) => {
       type,
       picture,
       province,
+      location,
       date,
+      time,
+      package,
+      description,
+      organizer,
     });
     return res.status(200).json({ message: "Event updated" });
   } catch (error) {
