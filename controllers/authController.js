@@ -69,6 +69,7 @@ const RegisterHandler = async (req, res) => {
       email,
       username,
       password: hashPassword,
+      role: "runner",
     });
     res.status(201).json({ success: `New user ${username} created!` });
   } catch (error) {
@@ -100,4 +101,33 @@ const UserProfile = async (req, res) => {
   }
 };
 
-module.exports = { LoginHandler, RegisterHandler, UserProfile };
+const ChangeRole = async (req, res) => {
+  if (!req.header("Authorization")) {
+    return res.status(401).json({ message: "No header Authorization" });
+  }
+  const token = req.header("Authorization").replace("Bearer ", "");
+  if (!token) {
+    return res.status(401).json({ message: "No token" });
+  }
+
+  try {
+    const decode = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const users = await db.collection("user").get();
+    const foundUser = users.docs.find(
+      (user) => user.data().username === decode.username
+    );
+    if (!foundUser) {
+      return res.status(404).json({ message: "User not found" });
+    } else {
+      await db.collection("user").doc(foundUser.id).update({
+        role: "organizer",
+      });
+    }
+
+    return res.status(200).json({ message: "Change role success" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { LoginHandler, RegisterHandler, UserProfile, ChangeRole };
