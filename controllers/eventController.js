@@ -1,3 +1,4 @@
+const { query } = require("express");
 const { db, bucket, storage } = require("../database/db");
 const { ref, uploadBytes } = require("firebase/storage");
 
@@ -7,6 +8,8 @@ const getAllEvents = async (req, res) => {
   if (result.empty) {
     return res.status(404).json({ message: "No event found" });
   }
+
+  // query
 
   const events = result.docs.map((event) => {
     const eventId = event.id;
@@ -19,6 +22,8 @@ const getEventById = async (req, res) => {
   if (!req?.query?.id) {
     return res.status(400).json({ message: "Please provide an id" });
   }
+
+  // query
 
   const { id } = req.query;
   try {
@@ -35,12 +40,14 @@ const getEventById = async (req, res) => {
 };
 
 const getAllNameEvent = async (req, res) => {
-  const result = await db.collection("event").get();
-  if (result.empty) {
+  // query
+  const eventRef = db.collection("event");
+  const query = await eventRef.select("name").get();
+  if (query.empty) {
     return res.status(404).json({ message: "No event found" });
   }
 
-  const names = result.docs
+  const names = query.docs
     .map((event) => {
       const eventId = event.id;
       const Eventname = event.data().name;
@@ -59,25 +66,20 @@ const getEventByType = async (req, res) => {
     return res.status(400).json({ message: "Please provide an type" });
   }
 
+  // query
+
   const { type } = req.query;
 
-  const events = await db.collection("event").get();
-  if (events.empty) {
+  const eventRef = db.collection("event");
+  const query = await eventRef.where("type", "array-contains", type).get();
+  if (query.empty) {
     return res.status(404).json({ message: "No event found" });
   }
 
-  const result = events.docs
-    .map((event) => {
-      if (
-        event.data().type.find((eventType) => eventType === type) === undefined
-      ) {
-        return null;
-      }
-
-      const eventId = event.id;
-      return { id: eventId, ...event.data() };
-    })
-    .filter((event) => event !== null);
+  const result = query.docs.map((event) => {
+    const eventId = event.id;
+    return { id: eventId, ...event.data() };
+  });
 
   res.json(result);
 };
@@ -87,33 +89,34 @@ const getEventByProvince = async (req, res) => {
     return res.status(400).json({ message: "Please provide an province" });
   }
 
-  const { province } = req.query;
+  // query
 
-  const events = await db.collection("event").get();
-  if (events.empty) {
+  const { province } = req.query;
+  const eventRef = db.collection("event");
+  const q = await eventRef.where("province", "==", province).get();
+
+  if (q.empty) {
     return res.status(404).json({ message: "No event found" });
   }
 
-  const result = events.docs
-    .map((event) => {
-      if (event.data().province !== province) {
-        return null;
-      }
-      const eventId = event.id;
-      return { id: eventId, ...event.data() };
-    })
-    .filter((event) => event !== null);
+  const result = q.docs.map((event) => {
+    const eventId = event.id;
+    return { id: eventId, ...event.data() };
+  });
 
   res.json(result);
 };
 
 const getAllLocation = async (req, res) => {
-  const result = await db.collection("event").get();
-  if (result.empty) {
+  // query
+
+  const eventRef = db.collection("event");
+  const query = await eventRef.select("latitude", "longitude").get();
+
+  if (query.empty) {
     return res.status(404).json({ message: "No event found" });
   }
-
-  const events = result.docs.map((event) => {
+  const events = query.docs.map((event) => {
     const eventId = event.id;
     const latitude = event.data().latitude;
     const longitude = event.data().longitude;
@@ -127,12 +130,16 @@ const getEventByOrganizer = async (req, res) => {
     return res.status(400).json({ message: "Please provide an organizer" });
   }
   const { organizer } = req.query;
-  const events = await db.collection("event").get();
-  if (events.empty) {
+
+  // query
+
+  const eventRef = db.collection("event");
+  const query = await eventRef.where("organizer", "==", organizer).get();
+  if (query.empty) {
     return res.status(404).json({ message: "No event found" });
   }
 
-  const result = events.docs
+  const result = query.docs
     .map((event) => {
       if (event.data().organizer !== organizer) {
         return null;
@@ -186,6 +193,8 @@ const upLoadFile = async (req, res) => {
 };
 
 const createEvent = async (req, res) => {
+  // query
+
   const {
     name,
     longitude,
@@ -217,9 +226,10 @@ const createEvent = async (req, res) => {
     return res.status(400).json({ message: "Please provide all field" });
   }
 
-  const events = await db.collection("event").get();
-  const foundEvent = events.docs.find((event) => event.data().name === name);
-  if (foundEvent) {
+  const eventRef = db.collection("event");
+  const foundEvent = await eventRef.where("name", "==", name).get();
+
+  if (foundEvent.docs.length > 0) {
     return res.status(401).json({ message: "Event already exist" });
   }
 
@@ -249,6 +259,8 @@ const createEvent = async (req, res) => {
 };
 
 const deleteEvent = async (req, res) => {
+  // query
+
   if (!req?.query?.id) {
     return res.status(400).json({ message: "Please provide an id" });
   }
@@ -268,6 +280,8 @@ const deleteEvent = async (req, res) => {
 };
 
 const updateEvent = async (req, res) => {
+  // query
+
   if (!req?.query?.id) {
     return res.status(400).json({ message: "Please provide an id" });
   }
@@ -304,11 +318,13 @@ const updateEvent = async (req, res) => {
     return res.status(400).json({ message: "Please provide all field" });
   }
 
-  const events = await db.collection("event").get();
-  const foundEvent = events.docs.find((event) => event.data().name === name);
+  const eventRef = db.collection("event");
+  const query = await eventRef.where("name", "==", name).get();
 
-  if (!foundEvent) {
-    return res.status(401).json({ message: "This Event not exist in system" });
+  if (query.docs.length > 0) {
+    return res
+      .status(401)
+      .json({ message: "This Event already exist in system" });
   }
 
   try {
