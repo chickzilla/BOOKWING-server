@@ -158,11 +158,18 @@ const upLoadFile = async (req, res) => {
     return res.status(400).send("No file uploaded.");
   }
 
+  // check file is image
+  const fileTypes = /jpeg|jpg|png|gif|jfif|pjpeg|bmp|webp|tiff|svg|ico/;
+  const mimetype = fileTypes.test(req.file.mimetype);
+  if (!mimetype) {
+    return res.status(400).send("File upload error: File is not image.");
+  }
   const file = req.file;
   const filename = file.originalname;
+  const newfilename = Date.now() + "-" + filename;
   const fileBuffer = file.buffer;
 
-  const fileUpload = bucket.file(filename);
+  const fileUpload = bucket.file(newfilename);
 
   // destination to storage
   const stream = fileUpload.createWriteStream({
@@ -176,14 +183,14 @@ const upLoadFile = async (req, res) => {
     });
 
     stream.on("finish", async () => {
-      const url = await bucket.file(filename).getSignedUrl({
+      const url = await bucket.file(newfilename).getSignedUrl({
         action: "read",
         expires: "03-09-2491",
       });
       return res.status(200).send({
         message: "File uploaded successfully.",
         url: url[0],
-        location: filename,
+        location: newfilename,
       });
     });
 
@@ -277,11 +284,8 @@ const deleteEvent = async (req, res) => {
   try {
     await db.collection("event").doc(id).delete();
     const result_picture_ref = result.data().picture_location;
-    const storage_picture_ref = `gs://book-wing.appspot.com/${result_picture_ref}`;
     const fileRef = bucket.file(result_picture_ref);
     await fileRef.delete();
-    //const fileRef = ref(storage, storage_picture_ref);
-    //await deleteObject(fileRef);
 
     return res.status(200).json({ message: "Event deleted" });
   } catch (error) {
