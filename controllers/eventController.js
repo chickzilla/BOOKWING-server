@@ -1,6 +1,5 @@
-const { query } = require("express");
 const { db, bucket, storage } = require("../database/db");
-const { ref, uploadBytes } = require("firebase/storage");
+const { ref, deleteObject, refFromURL } = require("firebase/storage");
 
 // GET EVENT -----------------------------------
 const getAllEvents = async (req, res) => {
@@ -181,9 +180,11 @@ const upLoadFile = async (req, res) => {
         action: "read",
         expires: "03-09-2491",
       });
-      return res
-        .status(200)
-        .send({ message: "File uploaded successfully.", url: url[0] });
+      return res.status(200).send({
+        message: "File uploaded successfully.",
+        url: url[0],
+        location: filename,
+      });
     });
 
     stream.end(fileBuffer);
@@ -201,6 +202,7 @@ const createEvent = async (req, res) => {
     latitude,
     type,
     picture,
+    picture_location,
     province,
     location,
     date,
@@ -215,6 +217,7 @@ const createEvent = async (req, res) => {
     !latitude ||
     !type ||
     !picture ||
+    !picture_location ||
     !province ||
     !location ||
     !date ||
@@ -228,7 +231,6 @@ const createEvent = async (req, res) => {
 
   const eventRef = db.collection("event");
   const foundEvent = await eventRef.where("name", "==", name).get();
-
   if (foundEvent.docs.length > 0) {
     return res.status(401).json({ message: "Event already exist" });
   }
@@ -242,6 +244,7 @@ const createEvent = async (req, res) => {
         latitude,
         type,
         picture,
+        picture_location,
         province,
         location,
         date,
@@ -273,6 +276,13 @@ const deleteEvent = async (req, res) => {
 
   try {
     await db.collection("event").doc(id).delete();
+    const result_picture_ref = result.data().picture_location;
+    const storage_picture_ref = `gs://book-wing.appspot.com/${result_picture_ref}`;
+    const fileRef = bucket.file(result_picture_ref);
+    await fileRef.delete();
+    //const fileRef = ref(storage, storage_picture_ref);
+    //await deleteObject(fileRef);
+
     return res.status(200).json({ message: "Event deleted" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
