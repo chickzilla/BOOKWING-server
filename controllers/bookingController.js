@@ -13,6 +13,7 @@ const getAllBookings = async (req, res) => {
   return res.json(bookings);
 };
 
+// by Event ID
 const getBookingByID = async (req, res) => {
   if (!req?.param?.id)
     return res.status(404).json({ message: "Please provide an ID" });

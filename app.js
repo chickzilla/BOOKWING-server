@@ -31,6 +31,9 @@ app.use("/auth", authRouter);
 const eventRouter = require("./routes/event");
 app.use("/event", eventRouter);
 
+const bookingRouter = require("./routes/booking");
+app.use("/booking", bookingRouter);
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
