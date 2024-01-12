@@ -95,7 +95,9 @@ const UserProfile = async (req, res) => {
     if (!foundUser) {
       return res.status(401).json({ message: "User not found" });
     }
-    res.status(200).json({ user: { ...foundUser.data(), password: "" } });
+    res.status(200).json({
+      user: { ...foundUser.data(), password: "", id: foundUser.id },
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

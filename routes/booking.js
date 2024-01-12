@@ -11,6 +11,6 @@ const verifyAuth = require("../middleware/verifyAuth");
 
 rounter.get("/", getAllBookings);
 rounter.get("/:id", verifyAuth, getBookingByID);
-rounter.post("/", verifyAuth, createBooking);
+rounter.post("/create", verifyAuth, createBooking);
 
 module.exports = rounter;

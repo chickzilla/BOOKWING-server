@@ -32,24 +32,26 @@ const getBookingByID = async (req, res) => {
 };
 
 const createBooking = async (req, res) => {
-  const { event, name, surname, email, phone, shirtsize } = req.body;
-  if (!event || !name || !surname || !email || !phone || !shirtsize) {
+  const { eventid, userid, eventtype, phone, shirtsize } = req.body;
+  if (!eventid || !userid || !eventtype || !phone || !shirtsize) {
     return res.status(400).json({ message: "Please provide all field" });
   }
   const bookingRef = db.collection("booking");
-  const foundBooking = await bookingRef.where("event", "==", event).get();
-  if (foundEvent.docs.length > 0) {
-    return res.status(401).json({ message: "Booging already exist" });
+  const foundBooking = await bookingRef
+    .where("eventid", "==", eventid)
+    .where("userid", "==", userid)
+    .get();
+  if (foundBooking.docs.length > 0) {
+    return res.status(401).json({ message: "Booking already exist" });
   }
 
   try {
     await db
       .collection("booking")
       .add({
-        event,
-        name,
-        surname,
-        email,
+        eventid,
+        userid,
+        eventtype,
         phone,
         shirtsize,
       })
