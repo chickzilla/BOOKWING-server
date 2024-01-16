@@ -27,6 +27,7 @@ const LoginHandler = async (req, res) => {
     const jwtToken = jwt.sign(
       {
         username: foundUser.data().username,
+        role: foundUser.data().role,
       },
       process.env.ACCESS_TOKEN_SECRET,
       {
