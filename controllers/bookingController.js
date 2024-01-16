@@ -13,7 +13,7 @@ const getAllBookings = async (req, res) => {
   return res.json(bookings);
 };
 
-// by Event ID
+//get by Event ID
 const getBookingByID = async (req, res) => {
   if (!req?.param?.id)
     return res.status(404).json({ message: "Please provide an ID" });
@@ -31,6 +31,18 @@ const getBookingByID = async (req, res) => {
   }
 };
 
+//get by USer ID
+const getBookingByUserID = async (req, res) => {
+  const result = await db
+    .collection("booking")
+    .where("userid", "==", uid)
+    .get();
+  if (result.empty)
+    return res.status(404).json({ message: "No booking found" });
+  return res.json(result.data);
+};
+
+// create Booking
 const createBooking = async (req, res) => {
   const { eventid, userid, eventtype, phone, shirtsize } = req.body;
   if (!eventid || !userid || !eventtype || !phone || !shirtsize) {
@@ -63,4 +75,9 @@ const createBooking = async (req, res) => {
   }
 };
 
-module.exports = { getAllBookings, getBookingByID, createBooking };
+module.exports = {
+  getAllBookings,
+  getBookingByID,
+  getBookingByUserID,
+  createBooking,
+};
