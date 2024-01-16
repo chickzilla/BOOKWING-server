@@ -27,6 +27,7 @@ const LoginHandler = async (req, res) => {
     const jwtToken = jwt.sign(
       {
         username: foundUser.data().username,
+        role: foundUser.data().role,
       },
       process.env.ACCESS_TOKEN_SECRET,
       {
@@ -125,8 +126,18 @@ const ChangeRole = async (req, res) => {
         role: "organizer",
       });
     }
+    const jwtNewToken = jwt.sign(
+      {
+        username: decode.username,
+        role: "organizer",
+      },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: "10d",
+      }
+    );
 
-    return res.status(200).json({ message: "Change role success" });
+    return res.status(200).json({ AccessToken: jwtNewToken });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
