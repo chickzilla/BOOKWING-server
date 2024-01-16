@@ -16,7 +16,7 @@ const getAllBookings = async (req, res) => {
 //get by Event ID
 const getBookingByID = async (req, res) => {
   if (!req?.param?.id)
-    return res.status(404).json({ message: "Please provide an ID" });
+    return res.status(404).json({ message: "Please provide an ID 555555" });
 
   const id = req.param;
   try {
@@ -33,13 +33,17 @@ const getBookingByID = async (req, res) => {
 
 //get by USer ID
 const getBookingByUserID = async (req, res) => {
-  const result = await db
-    .collection("booking")
-    .where("userid", "==", uid)
-    .get();
-  if (result.empty)
-    return res.status(404).json({ message: "No booking found" });
-  return res.json(result.data);
+  if (!req?.query?.id) {
+    return res.status(404).json({ message: "Please provide an ID 555" });
+  }
+  const uid = req.query.id;
+  const query = await db.collection("booking").where("userid", "==", uid).get();
+  if (!query) return res.status(404).json({ message: "No booking found" });
+  const result = query.docs.map((booking) => {
+    const bookingId = booking.id;
+    return { id: bookingId, ...booking.data() };
+  });
+  return res.json(result);
 };
 
 // create Booking
@@ -75,9 +79,27 @@ const createBooking = async (req, res) => {
   }
 };
 
+const deleteBooking = async (req, res) => {
+  if (!req?.query?.id) {
+    return res.status(404).json({ message: "Please provide an ID" });
+  }
+  const id = req.query.id;
+  const foundBooking = await db.collection("booking").doc(id).get();
+  if (!foundBooking.exists)
+    return res.status(404).json({ message: "Booking not found" });
+
+  try {
+    await db.collection("booking").doc(id).delete();
+    return res.status(200).json({ message: "Booking deleted" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getAllBookings,
   getBookingByID,
   getBookingByUserID,
   createBooking,
+  deleteBooking,
 };

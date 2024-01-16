@@ -9,14 +9,16 @@ const LoginHandler = async (req, res) => {
       .status(400)
       .json({ message: "Please provide an username and password" });
   }
-  const users = await db.collection("user").get();
-  const foundUser = users.docs.find(
-    (user) => user.data().username === username
-  );
+  const query = await db
+    .collection("user")
+    .where("username", "==", username)
+    .get();
 
-  if (!foundUser) {
+  if (!query) {
     return res.status(401).json({ message: "Username not exist in system" });
   }
+
+  const foundUser = query.docs[0];
 
   const match = await bcrypt.compare(password, foundUser.data().password);
   if (!match) {
@@ -28,6 +30,7 @@ const LoginHandler = async (req, res) => {
       {
         username: foundUser.data().username,
         role: foundUser.data().role,
+        id: foundUser.id,
       },
       process.env.ACCESS_TOKEN_SECRET,
       {
@@ -40,7 +43,12 @@ const LoginHandler = async (req, res) => {
       secure: true,
       maxAge: 24 * 60 * 60 * 1000 * 3,
     });
-    res.json({ AccessToken: jwtToken });
+    res.json({
+      AccessToken: jwtToken,
+      id: foundUser.id,
+      role: foundUser.data().role,
+      username: foundUser.data().username,
+    });
   }
 };
 
@@ -52,10 +60,11 @@ const RegisterHandler = async (req, res) => {
     return res.status(400).json({ message: "Please provide all field" });
   }
 
-  const users = await db.collection("user").get();
-  const foundUser = users.docs.find(
-    (user) => user.data().username === username
-  );
+  const users = await db
+    .collection("user")
+    .where("username", "==", username)
+    .get();
+  const foundUser = users.docs[0];
 
   if (foundUser) {
     return res.status(401).json({ message: "Username already exist" });
@@ -89,15 +98,14 @@ const UserProfile = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    const users = await db.collection("user").get();
-    const foundUser = users.docs.find(
-      (user) => user.data().username === decoded.username
-    );
-    if (!foundUser) {
+    const ID = decoded.id;
+    const users = await db.collection("user").doc(ID).get();
+    if (!users.exists) {
       return res.status(401).json({ message: "User not found" });
     }
+
     res.status(200).json({
-      user: { ...foundUser.data(), password: "", id: foundUser.id },
+      user: { ...users.data(), password: "", id: ID },
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -115,14 +123,15 @@ const ChangeRole = async (req, res) => {
 
   try {
     const decode = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    const users = await db.collection("user").get();
-    const foundUser = users.docs.find(
-      (user) => user.data().username === decode.username
-    );
-    if (!foundUser) {
+    const users = await db
+      .collection("user")
+      .where("username", "==", decode.username)
+      .get();
+
+    if (!users) {
       return res.status(404).json({ message: "User not found" });
     } else {
-      await db.collection("user").doc(foundUser.id).update({
+      await db.collection("user").doc(decode.id).update({
         role: "organizer",
       });
     }
@@ -130,6 +139,7 @@ const ChangeRole = async (req, res) => {
       {
         username: decode.username,
         role: "organizer",
+        id: decode.id,
       },
       process.env.ACCESS_TOKEN_SECRET,
       {
@@ -137,7 +147,9 @@ const ChangeRole = async (req, res) => {
       }
     );
 
-    return res.status(200).json({ AccessToken: jwtNewToken });
+    return res
+      .status(200)
+      .json({ AccessToken: jwtNewToken, role: "organizer" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
